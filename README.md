@@ -1,4 +1,4 @@
-# 小纸聊天 [中文](https://github.com/Li-yu-ji/small-paper-chat/edit/main/README.md) [English](https://github.com/Li-yu-ji/small-paper-chat/edit/main/English-README.md) [日本語](https://github.com/Li-yu-ji/small-paper-chat/edit/main/Japan-README.md)
+# 小纸聊天 [中文](https://github.com/Li-yu-ji/small-paper-chat/edit/main/README.md) [English](https://github.com/Li-yu-ji/small-paper-chat/blob/main/English-READEME) [日本語](https://github.com/Li-yu-ji/small-paper-chat/edit/main/Japan-README.md)
 
 一个基于 Flask 和 WebSocket 的实时聊天应用。
 
