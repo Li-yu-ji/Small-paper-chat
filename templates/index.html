@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小纸聊天</title>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.18.3/index.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        #login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: block;
+        }
+
+        #chat-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .chat-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+            margin-top: 20px;
+            height: calc(100vh - 200px);
+        }
+
+        #users-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .user-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .chat-content {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+
+        #messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .own-message {
+            background: #e3f2fd;
+            margin-left: 20%;
+        }
+
+        .private-message {
+            background: #fff3e0;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .message-content {
+            word-break: break-word;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            background: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        #message-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+            height: 40px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        #status-selector {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .emoji-container {
+            position: relative;
+        }
+
+        #emoji-button {
+            padding: 8px;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #emoji-picker {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            display: none;
+            z-index: 1000;
+        }
+
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .message-actions button {
+            padding: 4px 8px;
+            font-size: 0.8em;
+        }
+
+        .recall-btn {
+            background: #ff9800;
+        }
+
+        .delete-btn {
+            background: #f44336;
+        }
+
+        .user-item.online {
+            color: #4CAF50;
+        }
+
+        .user-item.away {
+            color: #ff9800;
+        }
+
+        .user-item.busy {
+            color: #f44336;
+        }
+
+        .user-item.offline {
+            color: #9e9e9e;
+        }
+
+        #typing-indicator {
+            padding: 5px 15px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            background: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .chat-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #mode-switch-btn {
+            display: none;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .bulk-actions button {
+            font-size: 0.9em;
+            padding: 6px 12px;
+        }
+
+        #current-mode {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .url-preview {
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .url-preview img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .preview-content {
+            padding: 10px;
+        }
+
+        .preview-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .preview-description {
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-container">
+        <h2>欢迎来到小纸聊天</h2>
+        <div style="margin: 20px;">
+            <input type="text" id="username-input" placeholder="输入你的用户名">
+            <button onclick="register()">进入聊天</button>
+        </div>
+    </div>
+
+    <div id="notification"></div>
+
+    <div id="chat-container">
+        <div class="chat-controls">
+            <div id="current-mode">当前模式：公共聊天</div>
+            <button id="mode-switch-btn" onclick="switchMode()">切换到公共聊天</button>
+            <select id="status-selector">
+                <option value="online">在线</option>
+                <option value="away">离开</option>
+                <option value="busy">忙碌</option>
+            </select>
+        </div>
+
+        <div class="bulk-actions">
+            <button onclick="deleteAllMessages()">删除所有消息</button>
+            <button onclick="deletePublicMessages()">删除公共消息</button>
+            <button onclick="deletePrivateMessages()">删除私聊消息</button>
+        </div>
+
+        <div class="chat-grid">
+            <div id="users-container">
+                <h3>在线用户</h3>
+            </div>
+            <div class="chat-content">
+                <div id="messages"></div>
+                <div id="typing-indicator"></div>
+                <div class="input-container">
+                    <div class="emoji-container">
+                        <button id="emoji-button" type="button">😊</button>
+                        <emoji-picker id="emoji-picker"></emoji-picker>
+                    </div>
+                    <textarea id="message-input" placeholder="输入消息..."></textarea>
+                    <button id="send-button" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        var socket = io();
+        var currentUsername = null;
+        var selectedUser = null;
+        var messagesDiv = document.getElementById('messages');
+        var messageInput = document.getElementById('message-input');
+        var sendButton = document.getElementById('send-button');
+        var loginContainer = document.getElementById('login-container');
+        var chatContainer = document.getElementById('chat-container');
+        var currentMode = document.getElementById('current-mode');
+        var modeSwitchBtn = document.getElementById('mode-switch-btn');
+        var emojiButton = document.getElementById('emoji-button');
+        var emojiPicker = document.getElementById('emoji-picker');
+        var typingIndicator = document.getElementById('typing-indicator');
+        var statusSelector = document.getElementById('status-selector');
+        var notification = document.getElementById('notification');
+
+        // 请求通知权限
+        if (Notification.permission !== 'granted') {
+            Notification.requestPermission();
+        }
+
+        function register() {
+            var usernameInput = document.getElementById('username-input');
+            var username = usernameInput.value.trim();
+            if (username) {
+                socket.emit('register', { username: username });
+            }
+        }
+
+        // 添加回车键支持
+        document.getElementById('username-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                register();
+            }
+        });
+
+        socket.on('register_response', function(data) {
+            if (data.success) {
+                currentUsername = data.username;
+                loginContainer.style.display = 'none';
+                chatContainer.style.display = 'block';
+                socket.emit('update_status', { status: 'online' });
+            } else {
+                alert(data.message);
+            }
+        });
+
+        function showNotification(title, message) {
+            if (Notification.permission === 'granted' && document.hidden) {
+                new Notification(title, { body: message });
+            }
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(function() {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateUsersList(users) {
+            var usersContainer = document.getElementById('users-container');
+            usersContainer.innerHTML = '<h3>在线用户</h3>';
+            users.forEach(function(user) {
+                if (user && user.username) {
+                    var userDiv = document.createElement('div');
+                    userDiv.className = 'user-item ' + (user.status || 'offline');
+                    userDiv.textContent = user.username;
+                    userDiv.onclick = function() {
+                        if (user.username !== currentUsername) {
+                            selectedUser = user.username;
+                            currentMode.textContent = '当前模式：与 ' + user.username + ' 私聊';
+                            modeSwitchBtn.style.display = 'block';
+                        }
+                    };
+                    userDiv.ondblclick = function() {
+                        if (user.username !== currentUsername) {
+                            messageInput.value += '@' + user.username + ' ';
+                            messageInput.focus();
+                        }
+                    };
+                    usersContainer.appendChild(userDiv);
+                }
+            });
+        }
+
+        function switchMode() {
+            selectedUser = null;
+            currentMode.textContent = '当前模式：公共聊天';
+            modeSwitchBtn.style.display = 'none';
+        }
+
+        sendButton.onclick = sendMessage;
+        messageInput.onkeypress = function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        };
+
+        function sendMessage() {
+            var content = messageInput.value.trim();
+            if (content && currentUsername) {
+                var messageData = {
+                    content: content,
+                    type: selectedUser ? 'private' : 'public',
+                    receiver: selectedUser
+                };
+                
+                console.log('Sending message:', messageData);
+                socket.emit('message', messageData);
+                
+                // 立即在本地显示消息
+                var localMessageData = {
+                    id: Date.now(), // 临时ID
+                    content: content,
+                    sender: currentUsername,
+                    timestamp: new Date().toLocaleString(),
+                    type: messageData.type,
+                    receiver: messageData.receiver
+                };
+                
+                if (messageData.type === 'private') {
+                    handlePrivateMessage(localMessageData);
+                } else {
+                    handlePublicMessage(localMessageData);
+                }
+                
+                messageInput.value = '';
+                emojiPicker.style.display = 'none';
+            }
+        }
+
+        function handlePublicMessage(data) {
+            var messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + (data.sender === currentUsername ? 'own-message' : '');
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">${data.sender}</span>
+                    <span class="message-time">${data.timestamp}</span>
+                </div>
+                <div class="message-content">${data.content}</div>
+            `;
+            
+            if (data.sender === currentUsername) {
+                var actions = document.createElement('div');
+                actions.className = 'message-actions';
+                actions.innerHTML = `
+                    <button class="recall-btn" onclick="socket.emit('recall_message', {message_id: ${data.id}})">撤回</button>
+                    <button class="delete-btn" onclick="socket.emit('delete_message', {message_id: ${data.id}})">删除</button>
+                `;
+                messageDiv.appendChild(actions);
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function handlePrivateMessage(data) {
+            var messageDiv = document.createElement('div');
+            messageDiv.className = 'message private-message ' + (data.sender === currentUsername ? 'own-message' : '');
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">(私聊) ${data.sender}</span>
+                    <span class="message-time">${data.timestamp}</span>
+                </div>
+                <div class="message-content">${data.content}</div>
+            `;
+            
+            if (data.sender === currentUsername) {
+                var actions = document.createElement('div');
+                actions.className = 'message-actions';
+                actions.innerHTML = `
+                    <button class="recall-btn" onclick="socket.emit('recall_message', {message_id: ${data.id}})">撤回</button>
+                    <button class="delete-btn" onclick="socket.emit('delete_message', {message_id: ${data.id}})">删除</button>
+                `;
+                messageDiv.appendChild(actions);
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        socket.on('message', function(data) {
+            console.log('Received message:', data);
+            if (data && data.content) {
+                handlePublicMessage(data);
+            }
+        });
+
+        socket.on('private_message', function(data) {
+            console.log('Received private message:', data);
+            if (data && data.content) {
+                handlePrivateMessage(data);
+                if (data.sender !== currentUsername) {
+                    showNotification('新私聊消息', `${data.sender}: ${data.content}`);
+                }
+            }
+        });
+
+        socket.on('user_left', function(data) {
+            if (data && data.username) {
+                showNotification('用户离开', `${data.username} 离开了聊天室`);
+                if (selectedUser === data.username) {
+                    switchMode();
+                }
+            }
+        });
+
+        socket.on('user_joined', function(data) {
+            if (data && data.username) {
+                showNotification('用户加入', `${data.username} 加入了聊天室`);
+            }
+        });
+
+        socket.on('user_list', function(data) {
+            if (data && Array.isArray(data.users)) {
+                updateUsersList(data.users);
+            }
+        });
+
+        socket.on('load_history', function(messages) {
+            messages.forEach(function(message) {
+                var messageElement = createMessageElement(message);
+                messagesDiv.appendChild(messageElement);
+            });
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+
+        socket.on('message_recalled', function(data) {
+            const messageElement = document.querySelector(`.message[data-message-id="${data.message_id}"]`);
+            if (messageElement) {
+                const contentDiv = messageElement.querySelector('.message-content');
+                contentDiv.innerHTML = '<i style="color: #999;">此消息已被撤回</i>';
+                const actionsDiv = messageElement.querySelector('.message-actions');
+                if (actionsDiv) {
+                    actionsDiv.remove();
+                }
+            }
+        });
+
+        socket.on('message_deleted', function(data) {
+            const messageElement = document.querySelector(`.message[data-message-id="${data.message_id}"]`);
+            if (messageElement) {
+                messageElement.remove();
+            }
+        });
+
+        statusSelector.addEventListener('change', function() {
+            socket.emit('update_status', { status: this.value });
+        });
+
+        let typingTimeout;
+        messageInput.addEventListener('input', function() {
+            socket.emit('typing', { typing: true });
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                socket.emit('typing', { typing: false });
+            }, 1000);
+        });
+
+        socket.on('user_typing', function(data) {
+            if (data.username !== currentUsername) {
+                if (data.typing) {
+                    typingIndicator.textContent = `${data.username} 正在输入...`;
+                } else {
+                    typingIndicator.textContent = '';
+                }
+            }
+        });
+
+        // Emoji选择器相关
+        emojiButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            emojiPicker.style.display = emojiPicker.style.display === 'block' ? 'none' : 'block';
+        });
+
+        emojiPicker.addEventListener('emoji-click', event => {
+            const cursor = messageInput.selectionStart;
+            const text = messageInput.value;
+            messageInput.value = text.slice(0, cursor) + event.detail.unicode + text.slice(cursor);
+            messageInput.selectionStart = messageInput.selectionEnd = cursor + event.detail.unicode.length;
+            emojiPicker.style.display = 'none';
+            messageInput.focus();
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!emojiPicker.contains(event.target) && event.target !== emojiButton) {
+                emojiPicker.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
