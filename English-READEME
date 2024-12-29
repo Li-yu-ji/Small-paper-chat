@@ -1,0 +1,39 @@
+# Paper Chat Application
+
+## Overview
+This is a chat application built with Python and Flask. It provides a simple and intuitive interface for users to engage in conversations.
+
+## Features
+- Real-time chat functionality
+- Clean and user-friendly interface
+- Support for multiple users
+
+## Installation
+1. Clone the repository
+2. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+To run the application:
+```bash
+python app.py
+```
+Then open your browser and navigate to `http://localhost:4545`
+
+## Requirements
+- Python 3.x
+- Flask 3.0.0
+- Flask-SocketIO 5.3.6
+- python-socketio 5.10.0
+- python-engineio 4.8.0
+- Flask-SQLAlchemy 3.1.1
+- requests 2.31.0
+- beautifulsoup4 4.12.2
+
+## Contributing
+Feel free to submit issues and enhancement requests.
+
+## License
+This project is licensed under the MIT License.
